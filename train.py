@@ -86,17 +86,17 @@ def trainGAN(device, batch_size, patience=10, numEpochs=100, noise_size=128):
     trainloader = get_dataloader(batch_size=batch_size, num_workers=0)
 
     # Graph setup
-    loss_fig, loss_ax = plt.subplots()
-    loss_ax.set_title("Loss plot")
-    loss_ax.set_xlabel("Epoch")
-    loss_ax.set_ylabel("Loss")
+    plt.figure("Loss figure")
+    plt.title("Loss plot")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
     plt.ion()
     plt.tight_layout()
     plt.show()
 
-    test_fig, test_ax = plt.subplots(figsize=(9, 9))
-    test_ax.set_xticks([])
-    test_ax.set_yticks([])
+    plt.figure("Test figure", figsize=(9, 9))
+    plt.xticks([])
+    plt.yticks([])
     plt.show()
 
     # Train setup
@@ -154,4 +154,32 @@ def trainGAN(device, batch_size, patience=10, numEpochs=100, noise_size=128):
         # Report metrics
         print(f"Generator loss: {g_loss}, Discriminator loss: {d_loss}")
 
-        # TODO: Plot graphs and images, early stopping, model saving
+        if epoch != 0:
+            plt.figure("Loss figure")
+            plt.plot(
+                [epoch - 1, epoch],
+                [prev_g_loss, g_loss],
+                color='blue',
+                label="Generator Loss" if epoch == 1 else ""
+            )
+            plt.plot(
+                [epoch - 1, epoch],
+                [prev_d_loss, d_loss],
+                color='orange',
+                label="Discriminator Loss" if epoch == 1 else ""
+            )
+            plt.legend()
+            plt.pause(0.1)
+        plt.figure("Test figure")
+        plt.imshow(fake_img[0], cmap="gray")
+        plt.pause(0.1)
+            
+        prev_g_loss = g_loss
+        prev_d_loss = d_loss
+        # Save current epoch performance
+        plt.savefig(f"results/images/gen_images_epoch-{epoch}.png")
+    
+    # Save final loss plots
+    plt.figure("Loss figure")
+    plt.savefig(f"results/loss.png")
+    # TODO: early stopping, model saving
