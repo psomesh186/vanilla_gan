@@ -1,5 +1,8 @@
+import torch
+
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
+from torch.autograd.variable import Variable
 
 
 def get_dataloader(batch_size=256, num_workers=4):
@@ -29,3 +32,14 @@ def get_dataloader(batch_size=256, num_workers=4):
         num_workers=num_workers
     )
     return dataloader
+
+def noise(n, n_features=128):
+    return Variable(torch.randn(n, n_features))
+
+def make_ones(size):
+    data = Variable(torch.ones(size, 1))
+    return data
+
+def make_zeros(size):
+    data = Variable(torch.zeros(size, 1))
+    return data

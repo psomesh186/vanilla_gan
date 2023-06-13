@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from tqdm import tqdm
 from torchvision.utils import make_grid
-from utils import get_dataloader
+from utils import get_dataloader, make_ones, make_zeros, noise
 from models import Generator, Discriminator
 
 
@@ -28,12 +28,10 @@ def train_generator_step(
     """
     optimizer.zero_grad()
     prediction = discriminator(fake_data)
-    loss = criterion(prediction, torch.ones(
-        (prediction.shape[0], 1),
-        device=device
-        ))
+    loss = criterion(prediction, make_ones(prediction.shape[0]).to(device))
     loss.backward()
     optimizer.step()
+
     return loss.item()
 
 def train_discriminator_step(
@@ -59,19 +57,17 @@ def train_discriminator_step(
     # Compute loss for real images
     optimizer.zero_grad()
     prediction = discriminator(real_data)
-    loss_real = criterion(prediction, torch.ones(
-        (prediction.shape[0], 1),
-        device=device
-        ))
+    loss_real = criterion(prediction, make_ones(prediction.shape[0]).to(device))
     loss_real.backward()
 
     # Compute loss for fake images
     prediction = discriminator(fake_data)
-    loss_fake = criterion(prediction, torch.zeros(
-        (prediction.shape[0], 1),
-        device=device
-        ))
+    loss_fake = criterion(
+        prediction,
+        make_zeros(prediction.shape[0]).to(device)
+    )
     loss_fake.backward()
+    optimizer.step()
 
     return loss_real.item() + loss_fake.item()
 
@@ -109,12 +105,12 @@ def trainGAN(device, batch_size, patience=10, numEpochs=100, noise_size=128):
     generator.to(device)
     discriminator = Discriminator()
     discriminator.to(device)
-    g_optimizer = torch.optim.Adam(generator.parameters())
-    d_optimizer = torch.optim.Adam(discriminator.parameters())
+    g_optimizer = torch.optim.Adam(generator.parameters(), lr=2e-4)
+    d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=2e-4)
     criterion = torch.nn.BCELoss()
     best_loss = torch.inf
     patience_counter = 0
-    test_noise = torch.randn((64, noise_size)).to(device)
+    test_noise = noise(64).to(device)
     k = 1
 
     # Training
@@ -129,8 +125,7 @@ def trainGAN(device, batch_size, patience=10, numEpochs=100, noise_size=128):
             ):
             images = images.to(device)
             for _ in range(k):
-                noise = torch.randn((images.shape[0], noise_size)).to(device)
-                fake_data = generator(noise)
+                fake_data = generator(noise(images.shape[0]).to(device))
                 d_loss += train_discriminator_step(
                     optimizer=d_optimizer,
                     discriminator=discriminator,
@@ -139,8 +134,7 @@ def trainGAN(device, batch_size, patience=10, numEpochs=100, noise_size=128):
                     criterion=criterion,
                     device=device
                 )
-            noise = torch.randn((images.shape[0], noise_size)).to(device)
-            fake_data = generator(noise)
+            fake_data = generator(noise(images.shape[0]).to(device))
             g_loss += train_generator_step(
                 optimizer=g_optimizer,
                 discriminator=discriminator,
