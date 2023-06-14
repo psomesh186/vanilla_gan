@@ -56,5 +56,5 @@ def make_training_gif():
         append_images=frames[1:],
         save_all=True,
         loop=0,
-        duration=300
+        duration=500
     )
