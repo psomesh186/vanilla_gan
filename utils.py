@@ -1,8 +1,10 @@
 import torch
+import glob
 
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 from torch.autograd.variable import Variable
+from PIL import Image
 
 
 def get_dataloader(batch_size=256, num_workers=4):
@@ -43,3 +45,16 @@ def make_ones(size):
 def make_zeros(size):
     data = Variable(torch.zeros(size, 1))
     return data
+
+def make_training_gif():
+    imgs = glob.glob("results/images/*.png")
+    imgs.sort()
+    frames = [Image.open(img) for img in imgs]
+    frames[0].save(
+        "results/training.gif",
+        format="GIF",
+        append_images=frames[1:],
+        save_all=True,
+        loop=0,
+        duration=300
+    )

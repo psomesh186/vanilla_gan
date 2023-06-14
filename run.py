@@ -3,6 +3,7 @@ import os
 import torch
 
 from train import trainGAN
+from utils import make_training_gif
 
 
 if __name__ == '__main__':
@@ -62,3 +63,4 @@ if __name__ == '__main__':
         patience=args.patience,
         numEpochs=args.epochs,
     )
+    make_training_gif()
