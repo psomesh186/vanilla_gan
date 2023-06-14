@@ -1,0 +1,5 @@
+matplotlib==3.7.1
+Pillow==9.4.0
+torch==2.1.0.dev20230410
+torchvision==0.16.0.dev20230410
+tqdm==4.65.0
