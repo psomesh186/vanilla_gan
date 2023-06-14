@@ -179,7 +179,28 @@ def trainGAN(device, batch_size, patience=10, numEpochs=100, noise_size=128):
         # Save current epoch performance
         plt.savefig(f"results/images/gen_images_epoch-{epoch}.png")
     
+        # Check improvement and save model
+        if g_loss < best_loss:
+            best_loss = g_loss
+            patience_counter = 0
+            torch.save({
+                "epoch": epoch,
+                "model": generator.state_dict(),
+                "loss": g_loss,
+                "optimzer": g_optimizer.state_dict()
+            }, f"checkpoints/generator.pt")
+            torch.save({
+                "epoch": epoch,
+                "model": discriminator.state_dict(),
+                "loss": d_loss,
+                "optimizer": d_optimizer.state_dict()
+            }, f"checkpoints/discriminator.pt")
+        else:
+            patience_counter += 1
+            # Perform early stopping if there is no improvement
+            if patience_counter > patience:
+                break
+
     # Save final loss plots
     plt.figure("Loss figure")
     plt.savefig(f"results/loss.png")
-    # TODO: early stopping, model saving
